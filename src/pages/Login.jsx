@@ -1,7 +1,9 @@
 import {useNavigate} from "react-router-dom";
 import {useState} from "react";
 import {useAuth} from "../context/AuthContext.jsx";
-import {AlertCircle} from "lucide-react";
+import {AlertCircle , LogIn, User, Lock } from "lucide-react";
+// eslint-disable-next-line no-unused-vars
+import { motion } from "framer-motion";
 
 const Login = () => {
     const  [username , setUsername] = useState('');

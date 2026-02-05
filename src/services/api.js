@@ -1,13 +1,25 @@
 import axios from "axios";
 
-// As long, I work with Http session in the backend i need to configurate the axios to tell him to include the cookies
 const api = axios.create({
-    baseUrl: 'http://localhost:8080/api',
-    withCredentials: true,
+    baseURL: 'http://localhost:8084/api',
     headers: {
         'Content-Type': 'application/json',
     },
 });
+
+// Attach the JWT token to every request if it exists in localStorage
+api.interceptors.request.use(
+    (config) => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user && user.token) {
+            config.headers.Authorization = `Bearer ${user.token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
 
 api.interceptors.response.use(
     (response) => response,
@@ -16,7 +28,6 @@ api.interceptors.response.use(
             const { status } = error.response;
 
             if (status === 401) {
-                // Clear local Storage and redirect to login in if session expires
                 localStorage.removeItem('user');
                 window.location.href = '/login';
             }
@@ -27,8 +38,8 @@ api.interceptors.response.use(
             }
         }
 
-        // this throws the error back to the component that called the API
         return Promise.reject(error);
     }
 );
+
 export default api;

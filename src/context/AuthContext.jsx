@@ -1,4 +1,4 @@
-import {createContext, useContext, useState} from "react";
+import { createContext, useContext, useState } from "react";
 import api from "../services/api.js";
 
 const AuthContext = createContext();
@@ -11,28 +11,29 @@ export const AuthProvider = ({ children }) => {
 
     const [loading, setLoading] = useState(false);
 
-    const login = async(username, password) => {
+    const login = async (username, password) => {
         setLoading(true);
+        await new Promise(resolve => setTimeout(resolve, 800));
+        let mockUser = null;
 
-        try {
-            const  response = await api.post("/auth/login", { username, password});
-            const userData = response.data;
-
-            setUser(userData);
-            localStorage.setITem('user', JSON.stringify(userData));
-            return { success : true };
-        } catch (error) {
-            console.error('Login Failed : ', error);
-            return {
-                success: false,
-                message : error.response?.data?.message || 'Invalid Credentials'
-            };
-        } finally {
-            setLoading(false);
+        if (username.toLowerCase().includes('admin')) {
+            mockUser = { username, role: 'ADMIN', token: 'mock-jwt-token' };
+        } else if (username.toLowerCase().includes('client')) {
+            mockUser = { username, role: 'CLIENT', token: 'mock-jwt-token' };
         }
-    }
+        if (mockUser) {
+            setUser(mockUser);
+            localStorage.setItem('user', JSON.stringify(mockUser));
+            setLoading(false);
+            return { success: true };
+        } else {
+            setLoading(false);
+            return { success: false, message: 'Invalid username (Use "admin" or "client")' };
+        }
+    };
 
-    const logout = async() => {
+
+    const logout = async () => {
         try {
             await api.post("/auth/logout");
         } catch (error) {
@@ -45,10 +46,11 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{user, login, logout, loading}}>
+        <AuthContext.Provider value={{ user, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
